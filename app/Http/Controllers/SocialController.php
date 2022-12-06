@@ -20,7 +20,7 @@ class SocialController extends Controller
 
         $this->_registerOrLoginGoogle($user);
 
-        return redirect('/dashboard');
+        return redirect('/');
     }
 
     protected function _registerOrLoginGoogle($incomingUser)
@@ -37,5 +37,40 @@ class SocialController extends Controller
             $user->save();
             Auth::login($user);
         }
+    }
+
+    public function profile()
+    {
+        return view('profile', [
+            'title' => 'Profile',
+            'user' => Auth::user()
+        ]);
+    }
+
+    public function update(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required',
+            'email' => 'required',
+        ]);
+        $id = Auth::user()->id;
+        $user = User::find($id);
+        $user->name = $request->name;
+        if ($request->current_password != null) {
+            $request->validate([
+                'current_password' => 'required | min:8',
+                'new_password' => 'required | min:8',
+            ]);
+            if (password_verify($request->current_password, $user->password)) {
+                $user->password = bcrypt($request->new_password);
+            } else {
+                return redirect()->back()->with('errors', 'Credentials Error');
+            }
+            $user->password = bcrypt($request->password);
+        }
+
+        $user->save();
+
+        return redirect('/profile')->with('success', 'Profile Updated Successfully');
     }
 }

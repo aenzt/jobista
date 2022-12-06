@@ -41,4 +41,14 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    public function jobs()
+    {
+        return $this->belongsToMany(Jobs::class)->withTimestamps();
+    }
+
+    public function apply_jobs()
+    {
+        return $this->belongsToMany(Jobs::class, 'apply_jobs')->withPivot('cover_letter', 'resume')->withTimestamps();
+    }
 }
